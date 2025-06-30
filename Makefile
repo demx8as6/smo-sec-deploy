@@ -18,7 +18,7 @@ DOCKER_COMPOSE_FILES = $(shell find docker/ -name "docker-compose*.yaml" | sort 
 DOCKER_COMPOSE = docker compose $(DOCKER_COMPOSE_FILES)
 
 
-.PHONY: all venv install run stop clean system-check deploy teardown status logs rebuild
+.PHONY: all venv install run stop clean system-check deploy teardown status logs rebuild certs clean-certs
 
 all: run ## [Dev] Default target
 
@@ -59,6 +59,39 @@ logs: ## [Deployment] Print last 100 lines of logs
 rebuild: ## [Deployment] Rebuild and start the containers
 	$(DOCKER_COMPOSE) build --no-cache
 	$(DOCKER_COMPOSE) up -d --force-recreate
+
+
+# -------------------------------------------------------------------------
+# [Certs]
+# -------------------------------------------------------------------------
+
+# --- TLS Self-Signed Certificate Generation ---
+CERT_DIR := docker/traefik/tls
+CA_KEY := $(CERT_DIR)/ca.key.pem
+CA_CERT := $(CERT_DIR)/ca.cert.pem
+TRAEFIK_KEY := $(CERT_DIR)/traefik.key.pem
+TRAEFIK_CSR := $(CERT_DIR)/traefik.csr.pem
+TRAEFIK_CERT := $(CERT_DIR)/traefik.cert.pem
+
+certs: $(CA_KEY) $(CA_CERT) $(TRAEFIK_KEY) $(TRAEFIK_CERT)
+
+$(CERT_DIR):
+	mkdir -p $(CERT_DIR)
+
+$(CA_KEY) $(CA_CERT): | $(CERT_DIR)
+	openssl genrsa -out $(CA_KEY) 4096
+	openssl req -x509 -new -nodes -key $(CA_KEY) -sha256 -days 3650 -out $(CA_CERT) -subj "/CN=SMO Local CA"
+
+$(TRAEFIK_KEY) $(TRAEFIK_CSR): | $(CERT_DIR)
+	openssl genrsa -out $(TRAEFIK_KEY) 2048
+	openssl req -new -key $(TRAEFIK_KEY) -out $(TRAEFIK_CSR) -subj "/CN=localhost"
+
+$(TRAEFIK_CERT): $(TRAEFIK_CSR) $(CA_CERT) $(CA_KEY)
+	openssl x509 -req -in $(TRAEFIK_CSR) -CA $(CA_CERT) -CAkey $(CA_KEY) -CAcreateserial \
+	-out $(TRAEFIK_CERT) -days 825 -sha256
+
+clean-certs:
+	rm -rf $(CERT_DIR)
 
 # -------------------------------------------------------------------------
 # [System]

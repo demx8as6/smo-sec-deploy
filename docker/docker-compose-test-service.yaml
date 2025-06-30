@@ -1,0 +1,30 @@
+
+services:
+  test-service:
+    build:
+      context: ..
+      dockerfile: docker/test-service/Dockerfile
+      network: host
+    image: docker-test-service:latest
+    hostname: test-service
+    container_name: test-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://test-service:8080/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    depends_on:
+      traefik:
+        condition: service_healthy
+    expose:
+      - "8080"
+    volumes:
+      - ../src:/app/src:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.test.rule=Host(`test-service.${HTTP_DOMAIN}`)"
+      - "traefik.http.routers.test.entrypoints=websecure"
+      - "traefik.http.routers.test.tls=true"
+      - "traefik.http.services.test.loadbalancer.server.port=8080"
