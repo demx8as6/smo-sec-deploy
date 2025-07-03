@@ -1,14 +1,29 @@
 entryPoints:
   web:
     address: ":80"
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
   websecure:
     address: ":443"
+
+  ping:
+    address: ":8082"
+
+ping:
+  entryPoint: "ping"
+
+api:
+  dashboard: true
+  insecure: false
+
+log:
+  level: DEBUG
 
 providers:
   docker:
     exposedByDefault: false
-
-tls:
-  certificates:
-    - certFile: "/certs/traefik.cert.pem"
-      keyFile: "/certs/traefik.key.pem"
+  file:
+    filename: /etc/traefik/dynamic.yml

@@ -1,0 +1,41 @@
+services:
+  traefik:
+    image: ${TRAEFIK_IMAGE}
+    container_name: traefik
+    hostname: traefik
+    restart: always
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "traefik",
+          "healthcheck",
+          "--ping"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    command:
+      - --providers.docker=true
+      - --providers.file.filename=/etc/traefik/dynamic.yml
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/traefik.yaml:/etc/traefik/traefik.yml:ro
+      - ./traefik/dynamic.yaml:/etc/traefik/dynamic.yml:ro
+      - ./traefik/tls/mydomain.crt:/certs/mydomain.crt:ro
+      - ./traefik/tls/mydomain.key:/certs/mydomain.key:ro
+    labels:
+      traefik.enable: false
+      traefik.http.routers.traefik.rule: Host(`traefik.${HTTP_DOMAIN}`)
+      traefik.http.routers.traefik.service: api@internal
+      traefik.http.routers.traefik.entrypoints: websecure
+      traefik.http.routers.traefik.tls: true
+      traefik.http.routers.traefik.tls.options: default
+      traefik.http.services.test.loadbalancer.server.port: 8080
+    networks:
+      dmz:
+      dcn:

@@ -1,0 +1,15 @@
+tls:
+  certificates:
+    - certFile: /certs/mydomain.crt
+      keyFile: /certs/mydomain.key
+
+http:
+  routers:
+    traefik-dashboard:
+      rule: "Host(`traefik.localhost`)"
+      entryPoints:
+        - websecure
+      service: api@internal
+      tls:
+        domains:
+          - main: "traefik.localhost"

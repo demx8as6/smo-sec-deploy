@@ -18,7 +18,7 @@ DOCKER_COMPOSE_FILES = $(shell find docker/ -name "docker-compose*.yaml" | sort 
 DOCKER_COMPOSE = docker compose $(DOCKER_COMPOSE_FILES)
 
 
-.PHONY: all venv install run stop clean system-check deploy teardown status logs rebuild certs clean-certs
+.PHONY: all venv install run stop clean system-check deploy teardown status logs rebuild gen-ca gen-server-cert clean-certs
 
 all: run ## [Dev] Default target
 
@@ -66,29 +66,61 @@ rebuild: ## [Deployment] Rebuild and start the containers
 # -------------------------------------------------------------------------
 
 # --- TLS Self-Signed Certificate Generation ---
+SERVICES = gateway traefik keycloak test-service identity minio massages kafka-ui odlux.oam flows.oam test.oam controller.dcn ves-collector.dcn
 CERT_DIR := docker/traefik/tls
-CA_KEY := $(CERT_DIR)/ca.key.pem
-CA_CERT := $(CERT_DIR)/ca.cert.pem
-TRAEFIK_KEY := $(CERT_DIR)/traefik.key.pem
-TRAEFIK_CSR := $(CERT_DIR)/traefik.csr.pem
-TRAEFIK_CERT := $(CERT_DIR)/traefik.cert.pem
 
-certs: $(CA_KEY) $(CA_CERT) $(TRAEFIK_KEY) $(TRAEFIK_CERT)
-
-$(CERT_DIR):
+$(CERT_DIR): ## [Security] Create directory for certificates
 	mkdir -p $(CERT_DIR)
 
-$(CA_KEY) $(CA_CERT): | $(CERT_DIR)
-	openssl genrsa -out $(CA_KEY) 4096
-	openssl req -x509 -new -nodes -key $(CA_KEY) -sha256 -days 3650 -out $(CA_CERT) -subj "/CN=SMO Local CA"
+gen-ca: $(CERT_DIR) ## [Security] Generate root CA certificate for Gateway
+	@echo "Generating CA private key..."
+	@mkdir -p $(CERT_DIR)
+	@openssl genrsa -out $(CERT_DIR)/mydomain-ca.key 4096
+	@echo "Generating CA certificate..."
+	@openssl req -x509 -new -nodes -key $(CERT_DIR)/mydomain-ca.key \
+		-sha256 -days 3650 \
+		-subj "/CN=GatewayRootCA" \
+		-out $(CERT_DIR)/mydomain-ca.crt
 
-$(TRAEFIK_KEY) $(TRAEFIK_CSR): | $(CERT_DIR)
-	openssl genrsa -out $(TRAEFIK_KEY) 2048
-	openssl req -new -key $(TRAEFIK_KEY) -out $(TRAEFIK_CSR) -subj "/CN=localhost"
+gen-server-cert: gen-ca  ## [Security] Generate server cert signed by the above CA
+	@echo "Generating server private key..."
+	@openssl genrsa -out $(CERT_DIR)/mydomain.key 4096
 
-$(TRAEFIK_CERT): $(TRAEFIK_CSR) $(CA_CERT) $(CA_KEY)
-	openssl x509 -req -in $(TRAEFIK_CSR) -CA $(CA_CERT) -CAkey $(CA_KEY) -CAcreateserial \
-	-out $(TRAEFIK_CERT) -days 825 -sha256
+	@echo "[ req ]" > $(CERT_DIR)/openssl-san.conf
+	@echo "default_bits = 4096" >> $(CERT_DIR)/openssl-san.conf
+	@echo "prompt = no" >> $(CERT_DIR)/openssl-san.conf
+	@echo "distinguished_name = req_distinguished_name" >> $(CERT_DIR)/openssl-san.conf
+	@echo "req_extensions = v3_req" >> $(CERT_DIR)/openssl-san.conf
+	@echo "" >> $(CERT_DIR)/openssl-san.conf
+	@echo "[ req_distinguished_name ]" >> $(CERT_DIR)/openssl-san.conf
+	@echo "CN = ${HTTP_DOMAIN}" >> $(CERT_DIR)/openssl-san.conf
+	@echo "" >> $(CERT_DIR)/openssl-san.conf
+	@echo "[ v3_req ]" >> $(CERT_DIR)/openssl-san.conf
+	@echo "subjectAltName = @alt_names" >> $(CERT_DIR)/openssl-san.conf
+	@echo "basicConstraints = critical,CA:FALSE" >> $(CERT_DIR)/openssl-san.conf
+	@echo "" >> $(CERT_DIR)/openssl-san.conf
+	@echo "[ alt_names ]" >> $(CERT_DIR)/openssl-san.conf
+	@echo "DNS.1 = ${HTTP_DOMAIN}" >> $(CERT_DIR)/openssl-san.conf
+
+	$(eval n=2)
+	@for s in $(SERVICES); do \
+		echo "DNS.$$n = $$s.$(HTTP_DOMAIN)" >> $(CERT_DIR)/openssl-san.conf; \
+		n=$$((n+1)); \
+	done
+
+	@echo "Generating CSR..."
+	@openssl req -new -key $(CERT_DIR)/mydomain.key \
+		-out $(CERT_DIR)/mydomain.csr \
+		-config $(CERT_DIR)/openssl-san.conf
+
+	@echo "Signing server cert with CA..."
+	@openssl x509 -req -in $(CERT_DIR)/mydomain.csr \
+		-CA $(CERT_DIR)/mydomain-ca.crt -CAkey $(CERT_DIR)/mydomain-ca.key -CAcreateserial \
+		-out $(CERT_DIR)/mydomain.crt -days 825 -sha256 \
+		-extfile $(CERT_DIR)/openssl-san.conf -extensions v3_req
+
+	@echo "Server certificate with SANs generated at $(CERT_DIR)/mydomain.crt"
+	@echo "CA certificate generated at $(CERT_DIR)/mydomain-ca.crt"
 
 clean-certs:
 	rm -rf $(CERT_DIR)

@@ -4,8 +4,8 @@ services:
     build:
       context: ..
       dockerfile: docker/test-service/Dockerfile
-      network: host
-    image: docker-test-service:latest
+      # network: host
+    image: ${TEST_SERVICE_IMAGE}
     hostname: test-service
     container_name: test-service
     restart: unless-stopped
@@ -19,12 +19,14 @@ services:
       traefik:
         condition: service_healthy
     expose:
-      - "8080"
-    volumes:
-      - ../src:/app/src:ro
+      - 8080
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.test.rule=Host(`test-service.${HTTP_DOMAIN}`)"
-      - "traefik.http.routers.test.entrypoints=websecure"
-      - "traefik.http.routers.test.tls=true"
-      - "traefik.http.services.test.loadbalancer.server.port=8080"
+      traefik.enable: true
+      traefik.http.routers.test.rule: Host(`test-service.${HTTP_DOMAIN}`)
+      traefik.http.routers.test.entrypoints: websecure
+      traefik.http.routers.test.tls: true
+      traefik.http.services.test.loadbalancer.server.port: 8080
+      traefik.docker.network: dmz
+    networks:
+      dmz:
+      smo:

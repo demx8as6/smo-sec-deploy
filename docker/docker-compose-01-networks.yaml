@@ -1,0 +1,17 @@
+networks:
+  dmz:
+    name: dmz
+    driver: bridge
+    enable_ipv6: false
+  smo:
+    name: smo
+    driver: bridge
+    enable_ipv6: false
+  dcn:
+    name: dcn
+    driver: bridge
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+      - subnet:  ${NETWORK_SUBNET_DCN_IPv6}
