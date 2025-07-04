@@ -1,0 +1,66 @@
+
+services:
+  keycloak-db:
+    image: ${KEYCLOAK_DB_IMAGE}
+    container_name: keycloak-db
+    hostname: keycloak-db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${ADMIN_USERNAME} -d keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    environment:
+      - POSTGRESQL_DATABASE=keycloak
+      - POSTGRESQL_USERNAME=${ADMIN_USERNAME}
+      - POSTGRESQL_PASSWORD=${ADMIN_PASSWORD}
+    volumes:
+      - keycloak-db-data:/bitnami/postgresql
+    networks:
+      dmz:
+
+  keycloak:
+    image: ${KEYCLOAK_IMAGE}
+    container_name: keycloak
+    hostname: keycloak
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://keycloak:9000/health/ready"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    environment:
+      KEYCLOAK_ENABLE_HEALTH_ENDPOINTS: true
+      KEYCLOAK_ADMIN: ${ADMIN_USERNAME}
+      KEYCLOAK_ADMIN_PASSWORD: ${ADMIN_PASSWORD}
+      KEYCLOAK_LOG_LEVEL: ${LOG_LEVEL}
+      KEYCLOAK_EXTRA_ARGS: --import-realm
+      KEYCLOAK_PRODUCTION: true
+      KEYCLOAK_DATABASE_USER: ${ADMIN_USERNAME}
+      KEYCLOAK_DATABASE_PASSWORD: ${ADMIN_PASSWORD}
+      KEYCLOAK_DATABASE_NAME: keycloak
+      KEYCLOAK_DATABASE_HOST: keycloak-db
+      KC_PROXY: edge
+      KC_PROXY_HEADERS: xforwarded
+      KC_HOSTNAME: keycloak.${HTTP_DOMAIN}
+      KC_HOSTNAME_STRICT: false
+      KC_HTTP_ENABLED: true
+      KC_HTTP_PORT: 8080
+    volumes:
+      - ./keycloak/realm-export.json:/opt/bitnami/keycloak/data/import/realm-export.json
+    labels:
+      traefik.enable: true
+      traefik.http.routers.keycloak.rule: Host(`keycloak.${HTTP_DOMAIN}`)
+      traefik.http.routers.keycloak.entrypoints: websecure
+      traefik.http.routers.keycloak.tls: true
+      traefik.http.services.keycloak.loadbalancer.server.port: 8080
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    networks:
+      dmz:
+
+volumes:
+  keycloak-db-data:

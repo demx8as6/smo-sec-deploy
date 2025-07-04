@@ -18,6 +18,8 @@ services:
     depends_on:
       traefik:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
     expose:
       - 8080
     labels:
