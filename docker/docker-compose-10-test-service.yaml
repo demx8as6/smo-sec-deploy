@@ -16,19 +16,22 @@ services:
       retries: 5
       start_period: 10s
     depends_on:
-      traefik:
+      oauth2-proxy:
         condition: service_healthy
-      keycloak:
-        condition: service_healthy
-    expose:
-      - 8080
     labels:
       traefik.enable: true
-      traefik.http.routers.test.rule: Host(`test-service.${HTTP_DOMAIN}`)
-      traefik.http.routers.test.entrypoints: websecure
-      traefik.http.routers.test.tls: true
-      traefik.http.services.test.loadbalancer.server.port: 8080
+      traefik.http.routers.test-service.rule: Host(`test-service.${HTTP_DOMAIN}`)
+      traefik.http.routers.test-service.entrypoints: websecure
+      traefik.http.routers.test-service.tls: true
+      traefik.http.routers.test-service.tls.options: default
+      traefik.http.routers.test-service.middlewares: oauth2-auth
+      traefik.http.services.test-service.loadbalancer.server.port: 8080
+      traefik.http.middlewares.oauth2-auth.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth
+      traefik.http.middlewares.oauth2-auth.forwardauth.trustForwardHeader: true
+      traefik.http.middlewares.oauth2-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization
       traefik.docker.network: dmz
+    expose:
+      - 8080
     networks:
       dmz:
       smo:

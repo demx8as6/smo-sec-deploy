@@ -13,3 +13,37 @@ http:
       tls:
         domains:
           - main: "traefik.localhost"
+
+    test-service:
+      rule: "Host(`test-service.localhost`)"
+      service: test-service
+      entryPoints:
+        - websecure
+      middlewares:
+        - oauth2-auth
+        - oauth2-errors
+
+  services:
+    oauth2-proxy:
+      loadBalancer:
+        servers:
+          - url: "http://oauth2-proxy:4180"
+    test-service:
+      loadBalancer:
+        servers:
+          - url: "http://test-service:8080"
+
+  middlewares:
+    oauth2-auth:
+      forwardAuth:
+        address: "https://oauth2-proxy.localhost/oauth2/auth"
+        trustForwardHeader: true
+        authResponseHeaders:
+          - X-Auth-Request-User
+          - X-Auth-Request-Email
+    oauth2-errors:
+      errors:
+        status:
+          - "401"
+        service: oauth2-proxy
+        query: "/oauth2/sign_in?rd={url}"

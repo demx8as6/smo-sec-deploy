@@ -1,0 +1,61 @@
+services:
+  oauth2-proxy:
+    build:
+      context: ./oauth2-proxy
+    image: ${OAUTH2_PROXY_IMAGE}-custom
+    container_name: oauth2-proxy
+    hostname: oauth2-proxy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "http://oauth2-proxy:4180/ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    command:
+      - --http-address=0.0.0.0:4180
+      - --reverse-proxy=true
+    environment:
+      # OIDC Provider settings
+      OAUTH2_PROXY_PROVIDER: keycloak-oidc
+      OAUTH2_PROXY_SCOPE: "openid email profile groups"
+      OAUTH2_PROXY_OIDC_ISSUER_URL: https://keycloak.${HTTP_DOMAIN}/realms/o-ran-sc
+      OAUTH2_PROXY_CLIENT_ID: oauth2-proxy
+      OAUTH2_PROXY_CLIENT_SECRET: Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U
+      OAUTH2_PROXY_REDIRECT_URL: https://oauth2-proxy.${HTTP_DOMAIN}/oauth2/callback
+      # Upstream service to protect (adjust as needed)
+      OAUTH2_PROXY_UPSTREAMS: http://test-service:8080/
+      # Cookie/session settings: openssl rand -base64 32 | tr -- '+/' '-_'
+      OAUTH2_PROXY_COOKIE_SECRET: oYzmBu-et6ZNj1S1xOKjgc7GLa3e5piVBzLcbwC5J24=
+      # Authorization: allow only users in these groups
+      OAUTH2_PROXY_ALLOWED_GROUPS: "/Administration,/Operation,/Supervision"
+      OAUTH2_PROXY_OIDC_GROUPS_CLAIM: groups
+      # Pass tokens and user info to upstream
+      OAUTH2_PROXY_PASS_ACCESS_TOKEN: true
+      OAUTH2_PROXY_PASS_AUTHORIZATION_HEADER: true
+      OAUTH2_PROXY_PASS_USER_HEADERS: true
+      OAUTH2_PROXY_SET_XAUTHREQUEST: true
+      # Display settings
+      OAUTH2_PROXY_PROVIDER_DISPLAY_NAME: Keycloak
+      OAUTH2_PROXY_SKIP_PROVIDER_BUTTON: true
+      # Misc
+      OAUTH2_PROXY_EMAIL_DOMAINS: "*"
+      OAUTH2_PROXY_PROVIDER_CA_FILE: /etc/ssl/certs/mydomain-ca.crt
+    volumes:
+      - ./traefik/tls/mydomain-ca.crt:/etc/ssl/certs/mydomain-ca.crt:ro
+    labels:
+      traefik.enable: true
+      traefik.http.routers.oauth2-proxy.rule: Host(`oauth2-proxy.${HTTP_DOMAIN}`)
+      traefik.http.routers.oauth2-proxy.entrypoints: websecure
+      traefik.http.routers.oauth2-proxy.tls: true
+      traefik.http.routers.oauth2-proxy.tls.options: default
+      traefik.http.services.oauth2-proxy.loadbalancer.server.port: 4180
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    extra_hosts:
+      keycloak.localhost: 172.20.0.3
+    expose:
+      - 4180
+    networks:
+      dmz:

@@ -38,4 +38,5 @@ services:
       traefik.http.services.test.loadbalancer.server.port: 8080
     networks:
       dmz:
+        ipv4_address: 172.20.0.3
       dcn:

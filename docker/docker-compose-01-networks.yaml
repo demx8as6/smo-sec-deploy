@@ -2,6 +2,9 @@ networks:
   dmz:
     name: dmz
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
     enable_ipv6: false
   smo:
     name: smo
