@@ -43,6 +43,8 @@ services:
       KEYCLOAK_DATABASE_NAME: keycloak
       KEYCLOAK_DATABASE_HOST: keycloak-db
       KC_HOSTNAME: keycloak.${HTTP_DOMAIN}
+      KC_HOSTNAME_URL: https://keycloak.${HTTP_DOMAIN}
+      KC_HOSTNAME_ADMIN_URL: https://keycloak.${HTTP_DOMAIN}
       KC_HOSTNAME_DEBUG: true
       KC_HOSTNAME_STRICT: false
       KC_PROXY_HEADERS: xforwarded
@@ -56,17 +58,31 @@ services:
       traefik.http.routers.keycloak.entrypoints: websecure
       traefik.http.routers.keycloak.tls: true
       traefik.http.routers.keycloak.tls.options: default
+      traefik.http.routers.keycloak.priority: 1
       traefik.http.services.keycloak.loadbalancer.server.port: 8080
+
+      traefik.http.routers.keycloak-hostname-debug.rule: Host(`keycloak.${HTTP_DOMAIN}`) && Path(`/realms/master/hostname-debug`)
+      traefik.http.routers.keycloak-hostname-debug.entrypoints: websecure
+      traefik.http.routers.keycloak-hostname-debug.tls: true
+      traefik.http.routers.keycloak-hostname-debug.tls.options: default
+      traefik.http.routers.keycloak-hostname-debug.service: keycloak
+      traefik.http.routers.keycloak-hostname-debug.middlewares: oauth2-auth-administration@docker
+      traefik.http.routers.keycloak-hostname-debug.priority: 100
+
+      traefik.http.middlewares.oauth2-auth-administration.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth?allowed_groups=/Administration
+      traefik.http.middlewares.oauth2-auth-administration.forwardauth.trustForwardHeader: true
+      traefik.http.middlewares.oauth2-auth-administration.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization,Set-Cookie
+      traefik.http.middlewares.oauth2-auth-administration.forwardauth.authRequestHeaders: Cookie
+
     depends_on:
       keycloak-db:
         condition: service_healthy
     expose:
       - 8080
     extra_hosts:
-      keycloak.localhost: 172.20.0.3
+      keycloak.smo.o-ran-sc.org: 172.20.0.3
     networks:
       dmz:
-        ipv4_address: 172.20.0.4
 
 volumes:
   keycloak-db-data:

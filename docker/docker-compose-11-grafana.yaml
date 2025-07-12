@@ -1,0 +1,49 @@
+services:
+  grafana:
+    image: ${GRAFANA_IMAGE}
+    container_name: grafana
+    hostname: grafana
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://grafana:3000/api/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+    depends_on:
+      oauth2-proxy:
+        condition: service_healthy
+    environment:
+      - GF_AUTH_PROXY_ENABLED=true
+      - GF_AUTH_PROXY_HEADER_NAME=X-Auth-Request-User
+      - GF_AUTH_PROXY_AUTO_SIGN_UP=true
+      - GF_SERVER_ROOT_URL=https://grafana.${HTTP_DOMAIN}
+      - GF_SERVER_DOMAIN=grafana.${HTTP_DOMAIN}
+      # Optionally disable local login form:
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    expose:
+      - 3000
+    volumes:
+      - grafana-data:/var/lib/grafana
+    labels:
+      traefik.enable: true
+      traefik.http.routers.grafana.rule: Host(`grafana.${HTTP_DOMAIN}`)
+      traefik.http.routers.grafana.entrypoints: websecure
+      traefik.http.routers.grafana.tls: true
+      traefik.http.routers.grafana.tls.options: default
+      traefik.http.routers.grafana.middlewares: oauth2-auth@docker
+      traefik.http.routers.grafana.service: grafana
+      traefik.http.services.grafana.loadbalancer.server.port: 3000
+
+      traefik.http.middlewares.oauth2-auth.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth
+      traefik.http.middlewares.oauth2-auth.forwardauth.trustForwardHeader: true
+      traefik.http.middlewares.oauth2-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization,Set-Cookie
+      traefik.http.middlewares.oauth2-auth.forwardauth.authRequestHeaders: Cookie
+      traefik.docker.network: dmz
+
+    networks:
+      dmz:
+
+volumes:
+  grafana-data:
+

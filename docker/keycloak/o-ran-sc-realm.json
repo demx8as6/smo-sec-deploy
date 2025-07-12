@@ -11,7 +11,7 @@
       "publicClient": false,
       "secret": "Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U",
       "redirectUris": [
-        "https://oauth2-proxy.localhost/oauth2/callback"
+        "https://oauth2-proxy.smo.o-ran-sc.org/oauth2/callback"
       ],
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
@@ -39,7 +39,8 @@
     {
       "username": "martin.skorupski",
       "enabled": true,
-      "email": "martin.skorupski@example.com",
+      "email": "martin.skorupski@highstreet-technologies.com",
+      "emailVerified": true,
       "firstName": "Martin",
       "lastName": "Skorupski",
       "groups": [
@@ -56,7 +57,10 @@
     {
       "username": "alex.stancu",
       "enabled": true,
-      "email": "alex.stancu@example.com",
+      "email": "alex.stancu@highstreet-technologies.com",
+      "emailVerified": true,
+      "firstName": "Alexandru",
+      "lastName": "Stancu",
       "groups": [
         "/Operation"
       ],
@@ -72,6 +76,9 @@
       "username": "carine.smith",
       "enabled": true,
       "email": "carine.smith@example.com",
+      "emailVerified": true,
+      "firstName": "Carine",
+      "lastName": "Smith",
       "groups": [
         "/Supervision"
       ],

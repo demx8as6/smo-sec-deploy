@@ -15,12 +15,12 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy only requirements first to leverage Docker cache
-COPY src/requirements.txt .
+COPY src/test-service/requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the source code
-COPY src/ ./src/
+COPY src/test-service/ /app/src/
 WORKDIR /app/src
 
 # Switch to non-root user

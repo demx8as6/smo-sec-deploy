@@ -66,7 +66,7 @@ rebuild: ## [Deployment] Rebuild and start the containers
 # -------------------------------------------------------------------------
 
 # --- TLS Self-Signed Certificate Generation ---
-SERVICES = gateway traefik keycloak oauth2-proxy test-service identity minio massages kafka-ui odlux.oam flows.oam test.oam controller.dcn ves-collector.dcn
+SERVICES = gateway traefik keycloak oauth2-proxy test-service grafana identity minio messages kafka-ui odlux.oam flows.oam test.oam controller.dcn ves-collector.dcn
 CERT_DIR := docker/traefik/tls
 
 $(CERT_DIR): ## [Security] Create directory for certificates
@@ -123,9 +123,14 @@ gen-server-cert: gen-ca  ## [Security] Generate server cert signed by the above 
 	@echo "CA certificate generated at $(CERT_DIR)/mydomain-ca.crt"
 
 trust: ## [Security] Add the generated certificate to your local ubuntu system for easy browsing
-	certutil -A -n "SMO-OAM-CA" -t "TC,C,C" -i docker/traefik/tls/mydomain-ca.crt -d sql:$HOME/.pki/nssdb
+	certutil -A -n "SMO-OAM-CA" -t "TC,C,C" -i docker/traefik/tls/mydomain-ca.crt -d sql:$$HOME/.pki/nssdb
+	sudo cp docker/traefik/tls/mydomain-ca.crt /usr/local/share/ca-certificates/
+	sudo update-ca-certificates
+	@echo "Please restart all you TLS client (e.g. Browser, ...)"
+
 
 clean-certs: ## [Security] Delete directory with generated certs and keys
+	certutil -D -n "SMO-OAM-CA" -d sql:$$HOME/.pki/nssdb
 	rm -rf $(CERT_DIR)
 
 # -------------------------------------------------------------------------

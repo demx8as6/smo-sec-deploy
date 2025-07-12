@@ -29,13 +29,20 @@ services:
       - ./traefik/tls/mydomain.crt:/certs/mydomain.crt:ro
       - ./traefik/tls/mydomain.key:/certs/mydomain.key:ro
     labels:
-      traefik.enable: false
+      traefik.enable: true
       traefik.http.routers.traefik.rule: Host(`traefik.${HTTP_DOMAIN}`)
       traefik.http.routers.traefik.service: api@internal
       traefik.http.routers.traefik.entrypoints: websecure
+      traefik.http.routers.traefik.tls.domains[0].main: traefik.${HTTP_DOMAIN}
       traefik.http.routers.traefik.tls: true
       traefik.http.routers.traefik.tls.options: default
+      traefik.http.routers.traefik.middlewares: oauth2-auth-administration@docker
       traefik.http.services.test.loadbalancer.server.port: 8080
+
+      traefik.http.middlewares.oauth2-auth-administration.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth?allowed_groups=/Administration
+      traefik.http.middlewares.oauth2-auth-administration.forwardauth.trustForwardHeader: true
+      traefik.http.middlewares.oauth2-auth-administration.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization,Set-Cookie
+      traefik.http.middlewares.oauth2-auth-administration.forwardauth.authRequestHeaders: Cookie
     networks:
       dmz:
         ipv4_address: 172.20.0.3
