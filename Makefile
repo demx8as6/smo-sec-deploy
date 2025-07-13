@@ -66,7 +66,7 @@ rebuild: ## [Deployment] Rebuild and start the containers
 # -------------------------------------------------------------------------
 
 # --- TLS Self-Signed Certificate Generation ---
-SERVICES = gateway traefik keycloak oauth2-proxy test-service grafana identity minio messages kafka-ui odlux.oam flows.oam test.oam controller.dcn ves-collector.dcn
+SERVICES = gateway traefik keycloak oauth2-proxy service-deck test-service grafana identity minio messages kafka-ui odlux.oam flows.oam test.oam controller.dcn ves-collector.dcn
 CERT_DIR := docker/traefik/tls
 
 $(CERT_DIR): ## [Security] Create directory for certificates

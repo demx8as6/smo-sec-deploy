@@ -1,0 +1,41 @@
+services:
+  nginx:
+    build:
+      context: ..
+      dockerfile: docker/service-deck/Dockerfile
+      # network: host
+    container_name: service-deck
+    hostname: service-deck
+    healthcheck:
+      test: [
+        "CMD-SHELL",
+        "curl -f http://localhost:8080 || exit 1"
+      ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    volumes:
+      - ./traefik/tls/mydomain-ca.crt:/etc/ssl/certs/mydomain-ca.crt:ro
+    depends_on:
+      oauth2-proxy:
+        condition: service_healthy
+    labels:
+      traefik.enable: true
+      traefik.http.routers.service-deck.rule: Host(`service-deck.${HTTP_DOMAIN}`)
+      traefik.http.routers.service-deck.entrypoints: websecure
+      traefik.http.routers.service-deck.tls: true
+      traefik.http.routers.service-deck.tls.options: default
+      traefik.http.routers.service-deck.service: service-deck
+      traefik.http.routers.service-deck.middlewares: oauth2-auth@docker
+      traefik.http.services.service-deck.loadbalancer.server.port: 8080
+
+      traefik.http.middlewares.oauth2-auth.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth
+      traefik.http.middlewares.oauth2-auth.forwardauth.trustForwardHeader: true
+      traefik.http.middlewares.oauth2-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization,Set-Cookie
+      traefik.http.middlewares.oauth2-auth.forwardauth.authRequestHeaders: Cookie
+      traefik.docker.network: dmz
+    expose:
+      - 8080
+    networks:
+      dmz:
