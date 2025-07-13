@@ -1,0 +1,12 @@
+<svg width="98" height="79" xmlns="http://www.w3.org/2000/svg">
+    <g id="logo-icon">
+        <rect fill="#2CA8A4" height="23" rx="3" ry="3" width="23" x="0" y="0" />
+        <rect fill="#2CA8A4" height="23" rx="3" ry="3" width="23" x="28" y="0" />
+        <rect fill="#2CA8A4" height="23" rx="3" ry="3" width="23" x="0" y="28" />
+        <rect fill="#2CA8A4" height="23" rx="3" ry="3" width="23" x="28" y="28" />
+        <rect fill="#2CA8A4" height="23" rx="3" ry="3" width="23" x="0" y="56" />
+        <rect fill="#2CA8A4" height="23" rx="3" ry="3" width="23" x="28" y="56" />
+        <polygon points="70,43 70,32 57,22 57,3 76,3 96,18 96,41 57,76 57,56"
+            style="fill:#2CA8A4;stroke:#2CA8A4;stroke-width:4;stroke-linejoin:round" />
+    </g>
+</svg>

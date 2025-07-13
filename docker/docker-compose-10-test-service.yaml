@@ -15,6 +15,8 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    volumes:
+      - ./traefik/tls/mydomain-ca.crt:/etc/ssl/certs/mydomain-ca.crt:ro
     depends_on:
       oauth2-proxy:
         condition: service_healthy

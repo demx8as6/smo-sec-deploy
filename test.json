@@ -1,0 +1,195 @@
+https: //traefik.smo.o-ran-sc.org/api/http/routers
+[
+  {
+    "entryPoints": [
+      "websecure"
+    ],
+    "middlewares": [
+      "oauth2-auth@docker"
+    ],
+    "service": "grafana",
+    "rule": "Host(`grafana.smo.o-ran-sc.org`)",
+    "priority": 32,
+    "tls": {
+      "options": "default"
+    },
+    "observability": {
+      "accessLogs": true,
+      "tracing": true,
+      "metrics": true
+    },
+    "status": "enabled",
+    "using": [
+      "websecure"
+    ],
+    "name": "grafana@docker",
+    "provider": "docker"
+  },
+  {
+    "entryPoints": [
+      "websecure"
+    ],
+    "middlewares": [
+      "oauth2-auth-administration@docker"
+    ],
+    "service": "keycloak",
+    "rule": "Host(`keycloak.smo.o-ran-sc.org`) \u0026\u0026 Path(`/realms/master/hostname-debug`)",
+    "priority": 100,
+    "tls": {
+      "options": "default"
+    },
+    "observability": {
+      "accessLogs": true,
+      "tracing": true,
+      "metrics": true
+    },
+    "status": "enabled",
+    "using": [
+      "websecure"
+    ],
+    "name": "keycloak-hostname-debug@docker",
+    "provider": "docker"
+  },
+  {
+    "entryPoints": [
+      "websecure"
+    ],
+    "service": "keycloak",
+    "rule": "Host(`keycloak.smo.o-ran-sc.org`)",
+    "priority": 1,
+    "tls": {
+      "options": "default"
+    },
+    "observability": {
+      "accessLogs": true,
+      "tracing": true,
+      "metrics": true
+    },
+    "status": "enabled",
+    "using": [
+      "websecure"
+    ],
+    "name": "keycloak@docker",
+    "provider": "docker"
+  },
+  {
+    "entryPoints": [
+      "websecure"
+    ],
+    "service": "oauth2-proxy",
+    "rule": "Host(`oauth2-proxy.smo.o-ran-sc.org`)",
+    "priority": 37,
+    "tls": {
+      "options": "default"
+    },
+    "observability": {
+      "accessLogs": true,
+      "tracing": true,
+      "metrics": true
+    },
+    "status": "enabled",
+    "using": [
+      "websecure"
+    ],
+    "name": "oauth2-proxy@docker",
+    "provider": "docker"
+  },
+  {
+    "entryPoints": [
+      "ping"
+    ],
+    "service": "ping@internal",
+    "rule": "PathPrefix(`/ping`)",
+    "ruleSyntax": "default",
+    "priority": 9223372036854775807,
+    "observability": {
+      "accessLogs": true,
+      "tracing": true,
+      "metrics": true
+    },
+    "status": "enabled",
+    "using": [
+      "ping"
+    ],
+    "name": "ping@internal",
+    "provider": "internal"
+  },
+  {
+    "entryPoints": [
+      "websecure"
+    ],
+    "middlewares": [
+      "oauth2-auth@docker"
+    ],
+    "service": "test-service",
+    "rule": "Host(`test-service.smo.o-ran-sc.org`)",
+    "priority": 37,
+    "tls": {
+      "options": "default"
+    },
+    "observability": {
+      "accessLogs": true,
+      "tracing": true,
+      "metrics": true
+    },
+    "status": "enabled",
+    "using": [
+      "websecure"
+    ],
+    "name": "test-service@docker",
+    "provider": "docker"
+  },
+  {
+    "entryPoints": [
+      "websecure"
+    ],
+    "middlewares": [
+      "oauth2-auth@docker"
+    ],
+    "service": "api@internal",
+    "rule": "Host(`traefik.smo.o-ran-sc.org`)",
+    "priority": 32,
+    "tls": {
+      "options": "default",
+      "domains": [
+        {
+          "main": "traefik.smo.o-ran-sc.org"
+        }
+      ]
+    },
+    "observability": {
+      "accessLogs": true,
+      "tracing": true,
+      "metrics": true
+    },
+    "status": "enabled",
+    "using": [
+      "websecure"
+    ],
+    "name": "traefik@docker",
+    "provider": "docker"
+  },
+  {
+    "entryPoints": [
+      "web"
+    ],
+    "middlewares": [
+      "redirect-web-to-websecure@internal"
+    ],
+    "service": "noop@internal",
+    "rule": "HostRegexp(`^.+$`)",
+    "ruleSyntax": "default",
+    "priority": 9223372036854775806,
+    "observability": {
+      "accessLogs": true,
+      "tracing": true,
+      "metrics": true
+    },
+    "status": "enabled",
+    "using": [
+      "web"
+    ],
+    "name": "web-to-websecure@internal",
+    "provider": "internal"
+  }
+]

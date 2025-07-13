@@ -80,7 +80,8 @@ gen-ca: $(CERT_DIR) ## [Security] Generate root CA certificate for Gateway
 	@openssl req -x509 -new -nodes -key $(CERT_DIR)/mydomain-ca.key \
 		-sha256 -days 3650 \
 		-subj "/CN=GatewayRootCA" \
-		-out $(CERT_DIR)/mydomain-ca.crt
+		-out $(CERT_DIR)/mydomain-ca.crt \
+		-addext "keyUsage=digitalSignature,keyCertSign,cRLSign"
 
 gen-server-cert: gen-ca  ## [Security] Generate server cert signed by the above CA
 	@echo "Generating server private key..."
@@ -126,7 +127,7 @@ trust: ## [Security] Add the generated certificate to your local ubuntu system f
 	certutil -A -n "SMO-OAM-CA" -t "TC,C,C" -i docker/traefik/tls/mydomain-ca.crt -d sql:$$HOME/.pki/nssdb
 	sudo cp docker/traefik/tls/mydomain-ca.crt /usr/local/share/ca-certificates/
 	sudo update-ca-certificates
-	@echo "Please restart all you TLS client (e.g. Browser, ...)"
+	@echo "Please restart all your TLS clients (e.g. Browser, ...)"
 
 
 clean-certs: ## [Security] Delete directory with generated certs and keys

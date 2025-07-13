@@ -3,27 +3,34 @@
 
 <head>
   <meta charset="UTF-8">
-  <title>SMO Secure Deployment</title>
+  <title>SMO OAM Deployment Test</title>
 </head>
 
 <body>
-  <h1>Welcome to SMO Secure Deployment</h1>
-  <p>This is the index page.</p>
+  <h1>SMO OAM Deployment Test</h1>
+  <p>This page tests the secure connections between the SMO OAM Components after the deployment.</p>
+  <p>If no ERROR is displayed but some interesting information, the deployment works as expected.</p>
 
   <div id="data-container"></div>
 
   <script>
-    fetch('https://traefik.smo.o-ran-sc.org/api/http/routers')
+    fetch('/proxy/routers')
       .then(response => response.json())
       .then(data => {
         const container = document.getElementById('data-container');
-        const routers = Array.isArray(data) ? data : Object.values(data);
+        // Normalize to array
+        let routers = Array.isArray(data) ? data : Object.values(data);
+        // Filter for provider === 'docker'
+        routers = routers.filter(item => item.provider === 'docker');
+        // Sort by priority (ascending)
+        routers.sort((a, b) => (a.priority ?? 0) - (b.priority ?? 0));
+        // Render
         routers.forEach(item => {
           const entry = document.createElement('div');
           entry.innerHTML = `
-        <h3>${item.name || 'No Name'}</h3>
-        <pre>${JSON.stringify(item, null, 2)}</pre>
-      `;
+            <h3>${item.name || 'No Name'}</h3>
+            <pre>${JSON.stringify(item, null, 2)}</pre>
+          `;
           container.appendChild(entry);
         });
       })

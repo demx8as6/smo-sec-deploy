@@ -58,7 +58,7 @@ services:
       traefik.http.routers.keycloak.entrypoints: websecure
       traefik.http.routers.keycloak.tls: true
       traefik.http.routers.keycloak.tls.options: default
-      traefik.http.routers.keycloak.priority: 1
+      traefik.http.routers.keycloak.priority: 2
       traefik.http.services.keycloak.loadbalancer.server.port: 8080
 
       traefik.http.routers.keycloak-hostname-debug.rule: Host(`keycloak.${HTTP_DOMAIN}`) && Path(`/realms/master/hostname-debug`)
@@ -67,7 +67,7 @@ services:
       traefik.http.routers.keycloak-hostname-debug.tls.options: default
       traefik.http.routers.keycloak-hostname-debug.service: keycloak
       traefik.http.routers.keycloak-hostname-debug.middlewares: oauth2-auth-administration@docker
-      traefik.http.routers.keycloak-hostname-debug.priority: 100
+      traefik.http.routers.keycloak-hostname-debug.priority: 3
 
       traefik.http.middlewares.oauth2-auth-administration.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth?allowed_groups=/Administration
       traefik.http.middlewares.oauth2-auth-administration.forwardauth.trustForwardHeader: true
