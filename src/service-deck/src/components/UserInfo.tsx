@@ -5,6 +5,7 @@ interface UserInfoResponse {
   user: string;
   groups: string;
   email: string;
+  displayGroups?: string;
 }
 
 const UserInfo: React.FC = () => {
@@ -49,13 +50,16 @@ const UserInfo: React.FC = () => {
     );
   }
 
+  const groups = userInfo.groups.split(',').map(g => g.trim());
+  const allowedGroups = new Set(["Administration", "Operation", "Supervision"]);
+  userInfo.displayGroups = groups.filter(item => allowedGroups.has(item)).join(', ');
   return (
     <Box sx={{ px: 2, py: 1 }}>
       <Typography variant="body2">
         Logged in as <strong>{userInfo.email}</strong>
       </Typography>
       <Typography variant="body2" color="text.secondary">
-        Groups: {userInfo.groups}
+        Groups: {userInfo.displayGroups}
       </Typography>
     </Box>
   );

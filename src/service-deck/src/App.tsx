@@ -13,7 +13,10 @@ import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme/theme';
 import LinkList from './components/LinkList';
 import LogoutButton from './components/LogoutButton';
+import ProfileButton from './components/ProfileButton';
 import UserInfo from './components/UserInfo';
+
+const httpDomain = window.location.host.split(".").slice(1).join(".");
 
 function App() {
   return (
@@ -44,6 +47,7 @@ function App() {
             <Paper elevation={2} sx={{ p: 2 }}>
               <Typography variant="subtitle2" gutterBottom>
                 <UserInfo />
+                <ProfileButton />
                 <LogoutButton />
               </Typography>
             </Paper>
@@ -57,7 +61,7 @@ function App() {
         background: 'linear-gradient(to right, white 0%, white 20%, #2CA8A4 100%)',
       }}>
         <Typography variant="body2" color="textSecondary">
-          &copy; {new Date().getFullYear()} smo.o-ran-sc.org
+          &copy; {new Date().getFullYear()} {httpDomain}
         </Typography>
       </Box>
     </ThemeProvider>
