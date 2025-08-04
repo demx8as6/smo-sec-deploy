@@ -13,6 +13,7 @@ import { ThemeProvider } from '@mui/material/styles';
 import theme from './theme/theme';
 import LinkList from './components/LinkList';
 import LogoutButton from './components/LogoutButton';
+import UserInfo from './components/UserInfo';
 
 function App() {
   return (
@@ -42,9 +43,9 @@ function App() {
           <Grid item xs={12} md={3}>
             <Paper elevation={2} sx={{ p: 2 }}>
               <Typography variant="subtitle2" gutterBottom>
+                <UserInfo />
                 <LogoutButton />
               </Typography>
-              <Typography variant="body2">Coming soon...</Typography>
             </Paper>
           </Grid>
         </Grid>
@@ -54,7 +55,7 @@ function App() {
         p: 2,
         textAlign: 'left',
         background: 'linear-gradient(to right, white 0%, white 20%, #2CA8A4 100%)',
-        }}>
+      }}>
         <Typography variant="body2" color="textSecondary">
           &copy; {new Date().getFullYear()} smo.o-ran-sc.org
         </Typography>

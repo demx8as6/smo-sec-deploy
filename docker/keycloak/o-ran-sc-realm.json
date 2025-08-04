@@ -2,6 +2,10 @@
   "realm": "o-ran-sc",
   "displayName": "O-RAN Software Community",
   "enabled": true,
+  "attributes": {
+    "accessTokenLifespan": "900",
+    "post.logout.redirect.uris": "+"
+  },
   "clients": [
     {
       "clientId": "oauth2-proxy",
@@ -25,7 +29,8 @@
           "protocolMapper": "oidc-group-membership-mapper",
           "consentRequired": false,
           "config": {
-            "full.path": "true",
+            "user.attribute": "username",
+            "full.path": "false",
             "id.token.claim": "true",
             "access.token.claim": "true",
             "claim.name": "groups",
@@ -44,7 +49,7 @@
       "firstName": "Martin",
       "lastName": "Skorupski",
       "groups": [
-        "/Administration"
+        "Administration"
       ],
       "credentials": [
         {
@@ -62,7 +67,7 @@
       "firstName": "Alexandru",
       "lastName": "Stancu",
       "groups": [
-        "/Operation"
+        "Operation"
       ],
       "credentials": [
         {
@@ -80,7 +85,7 @@
       "firstName": "Carine",
       "lastName": "Smith",
       "groups": [
-        "/Supervision"
+        "Supervision"
       ],
       "credentials": [
         {

@@ -15,6 +15,8 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+    environment:
+      REACT_APP_HTTP_DOMAIN: ${HTTP_DOMAIN}
     volumes:
       - ./traefik/tls/mydomain-ca.crt:/etc/ssl/certs/mydomain-ca.crt:ro
     depends_on:
@@ -32,7 +34,7 @@ services:
 
       traefik.http.middlewares.oauth2-auth.forwardauth.address: http://oauth2-proxy:4180/oauth2/auth
       traefik.http.middlewares.oauth2-auth.forwardauth.trustForwardHeader: true
-      traefik.http.middlewares.oauth2-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,Authorization,Set-Cookie
+      traefik.http.middlewares.oauth2-auth.forwardauth.authResponseHeaders: X-Auth-Request-User,X-Auth-Request-Email,X-Auth-Request-Groups,Authorization,Set-Cookie
       traefik.http.middlewares.oauth2-auth.forwardauth.authRequestHeaders: Cookie
       traefik.docker.network: dmz
     expose:

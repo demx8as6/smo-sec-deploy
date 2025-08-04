@@ -12,13 +12,15 @@ services:
       timeout: 5s
       retries: 5
       start_period: 20s
-    command: --config /oauth2-proxy.cfg
+    command:
+      - --config=/etc/oauth2-proxy.cfg
+      # - --logging-level=debug
     environment:
       OAUTH2_PROXY_CLIENT_ID: oauth2-proxy
       OAUTH2_PROXY_CLIENT_SECRET: Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U
       SSL_CERT_FILE: /etc/ssl/certs/mydomain-ca.crt
     volumes:
-      - ./oauth2-proxy/oauth2-proxy.cfg:/oauth2-proxy.cfg
+      - ./oauth2-proxy/oauth2-proxy.cfg:/etc/oauth2-proxy.cfg
       - ./traefik/tls/mydomain-ca.crt:/etc/ssl/certs/mydomain-ca.crt:ro
     depends_on:
       keycloak:
